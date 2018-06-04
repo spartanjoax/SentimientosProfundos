@@ -14,7 +14,7 @@ class UnigramaModeloLenguaje(object):
         for palabra in dictSort:
             if palabra not in self.diccionario:
                 self.diccionario[palabra] = len(self.diccionario)
-        for k, v in self.diccionario:
+        for k, v in self.diccionario.items():
             self.diccionarioInvertido[v] = k
         self.palabrasUnicas = len(self.frecuenciasUnigramas)
 
