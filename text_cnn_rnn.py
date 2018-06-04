@@ -1,10 +1,10 @@
-#Obtenida de https://github.com/jiegzhan/multi-class-text-classification-cnn-rnn/blob/master/text_cnn_rnn.py
 import numpy as np
 import tensorflow as tf
 
 class TextCNNRNN(object):
-	def __init__(self, embedding_mat, non_static, hidden_unit, sequence_length, max_pool_size,
-		num_classes, embedding_size, filter_sizes, num_filters, l2_reg_lambda=0.0):
+	def __init__(self, vocab_size, hidden_unit, sequence_length, max_pool_size,
+		num_classes, embedding_size, filter_sizes, num_filters, l2_reg_lambda=0.0,
+        	pre_trained=False):
 
 		self.input_x = tf.placeholder(tf.int32, [None, sequence_length], name='input_x')
 		self.input_y = tf.placeholder(tf.float32, [None, num_classes], name='input_y')
@@ -15,12 +15,23 @@ class TextCNNRNN(object):
 
 		l2_loss = tf.constant(0.0)
 
-		with tf.device('/cpu:0'), tf.name_scope('embedding'):
-			if not non_static:
-				W = tf.constant(embedding_mat, name='W')
-			else:
-				W = tf.Variable(embedding_mat, name='W')
-			self.embedded_chars = tf.nn.embedding_lookup(W, self.input_x)
+		# Embedding layer
+        	with tf.device('/cpu:0'), tf.name_scope("embedding"):
+            		if pre_trained:
+                		W_ = tf.Variable(
+                    			tf.constant(0.0, shape=[vocab_size, embedding_size]),
+                    			trainable=False,
+                    			name='W')
+                		self.embedding_placeholder = tf.placeholder(
+                    			tf.float32, [vocab_size, embedding_size],
+                    			name='pre_trained')
+                		W = tf.assign(W_, self.embedding_placeholder)
+            		else:
+                		W = tf.Variable(
+                    			tf.random_uniform([vocab_size, embedding_size], -1.0, 1.0),
+                    			name="W")
+
+            		self.embedded_chars = tf.nn.embedding_lookup(W, self.input_x)
 			emb = tf.expand_dims(self.embedded_chars, -1)
 
 		pooled_concat = []
